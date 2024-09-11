@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body>
+    <div id="map" class="leaflet-map"></div>
+
+    <!-- เมนูสามขีด -->
+    <div id="menuToggle" class="menu">
+        &#9776; <!-- สามขีด -->
+    </div>
+    <div id="menuItems" class="menu-items" style="display: none;">
+        <button id="clearBtn">Clear Points</button>
+        <button id="undoBtn">Undo Point</button>
+        <button id="showDistanceBtn">Show Total Distance</button> <!-- ปุ่มแสดงระยะทางรวม -->
+    </div>
+
+    <!-- กล่องข้อความแสดงระยะทางรวม -->
+    <div id="infoBoxContainer" class="info-box-container" style="display: none;">
+        <div id="infoBox" class="info-box">Total Distance: 0 meters</div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

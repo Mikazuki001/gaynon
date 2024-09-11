@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard with Custom Graph</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
+            height: 100vh;
+        }
+        #map {
+            grid-row: 1;
+            grid-column: 1;
+            height: 100%;
+            width: 100%;
+        }
+        #graph {
+            grid-row: 1;
+            grid-column: 2;
+            height: 100%;
+            width: 100%;
+        }
+        .sidebar {
+            grid-row: 2;
+            grid-column: 1;
+            padding: 10px;
+            background: #f4f4f4;
+            border-top: 1px solid #ddd;
+            height: 100%;
+        }
+        .info-box-container {
+            grid-row: 2;
+            grid-column: 2;
+            padding: 10px;
+            background: #fff;
+            border-left: 1px solid #ddd;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="graph">
+        <canvas id="customChart"></canvas>
+    </div>
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <div id="menuToggle" class="menu">
+            &#9776; <!-- เมนูสามขีด -->
+        </div>
+        <div id="menuItems" class="menu-items">
+            <button id="clearBtn">Clear Points</button>
+            <button id="undoBtn">Undo Point</button>
+            <button id="showDistanceBtn">Show Total Distance</button>
+        </div>
+    </div>
+    <div class="info-box-container">
+        <div id="infoBox" class="info-box">My custom distance: 0 km<br>Elevation: 0 m<br>Segment length: 0 km<br>Type: None</div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const map = L.map('map').setView([13.736717, 100.523186], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+        }).addTo(map);
+
+        const points = [];
+        const markers = [];
+        const latlngs = [];
+        let totalDistance = 0;
+        let polyline = L.polyline([], { color: 'blue' }).addTo(map);
+
+        function updateInfoBox() {
+            document.getElementById('infoBox').innerHTML = `
+                My custom distance: ${(totalDistance / 1000).toFixed(1)} km<br>
+                Elevation: ${points.length > 0 ? points[points.length - 1].alt : 0} m<br>
+                Segment length: ${(totalDistance / 1000).toFixed(1)} km<br>
+                Type: Asphalt
+            `;
+        }
+
+        function updateGraph() {
+            const ctx = document.getElementById('customChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['My custom distance', 'Elevation', 'Segment length'],
+                    datasets: [{
+                        label: 'Values',
+                        data: [
+                            totalDistance / 1000, // Custom distance in km
+                            points.length > 0 ? points[points.length - 1].alt : 0, // Elevation
+                            totalDistance / 1000, // Segment length in km
+                        ],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)',
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function calculateDistance(latlngs) {
+            let distance = 0;
+            for (let i = 0; i < latlngs.length - 1; i++) {
+                distance += latlngs[i].distanceTo(latlngs[i + 1]);
+            }
+            return distance;
+        }
+
+        function onMapClick(e) {
+            const latlng = e.latlng;
+            const altitude = Math.floor(Math.random() * 100); // ใช้ค่าความสูงสุ่มในที่นี้
+
+            // เพิ่มจุดใหม่
+            points.push({ latlng, alt: altitude });
+            const marker = L.marker(latlng, { draggable: true }).addTo(map)
+                .bindPopup(`Altitude: ${altitude} meters`)
+                .openPopup();
+            markers.push(marker);
+            latlngs.push(latlng);
+
+            marker.on('dragend', function(e) {
+                const newLatLng = e.target.getLatLng();
+                const index = markers.indexOf(marker);
+                if (index !== -1) {
+                    // อัปเดตตำแหน่งใหม่
+                    points[index].latlng = newLatLng;
+                    latlngs[index] = newLatLng;
+                    polyline.setLatLngs(latlngs);
+                    totalDistance = calculateDistance(latlngs);
+                    updateInfoBox();
+                    updateGraph();
+                }
+            });
+
+            // อัปเดตเส้นเชื่อม
+            polyline.setLatLngs(latlngs);
+
+            // คำนวณระยะทางรวม
+            totalDistance = calculateDistance(latlngs);
+            updateInfoBox();
+            updateGraph();
+        }
+
+        function clearPoints() {
+            points.length = 0;
+            markers.forEach(marker => map.removeLayer(marker));
+            markers.length = 0;
+            latlngs.length = 0;
+            polyline.setLatLngs(latlngs); // รีเซ็ตเส้นเชื่อม
+            totalDistance = 0;
+            updateInfoBox();
+            updateGraph();
+        }
+
+        function undoLastPoint() {
+            if (points.length > 0) {
+                const lastMarker = markers.pop();
+                map.removeLayer(lastMarker);
+                points.pop();
+                latlngs.pop();
+
+                // อัปเดตเส้นเชื่อม
+                polyline.setLatLngs(latlngs);
+
+                totalDistance = calculateDistance(latlngs);
+                updateInfoBox();
+                updateGraph();
+            }
+        }
+
+        map.on('click', onMapClick);
+        document.getElementById('clearBtn').addEventListener('click', clearPoints);
+        document.getElementById('undoBtn').addEventListener('click', undoLastPoint);
+
+        // แสดงกราฟเริ่มต้น
+        updateGraph();
+    </script>
+</body>
+</html>

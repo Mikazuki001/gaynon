@@ -1,0 +1,118 @@
+/* สไตล์สำหรับแผนที่ */
+.leaflet-map {
+    height: 100vh; /* ให้แผนที่เต็มหน้าจอ */
+    width: 100vw; /* กำหนดความกว้างให้เต็มหน้าจอ */
+    position: relative; /* ช่วยให้การจัดตำแหน่งของเมนูสามขีดทำงานได้ */
+}
+
+/* สไตล์สำหรับเมนูสามขีด */
+.menu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 30px;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    z-index: 1000; /* ทำให้เมนูสามขีดอยู่เหนือแผนที่ */
+}
+
+.menu-items {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* ทำให้เมนูอยู่เหนือแผนที่ */
+    display: none; /* เริ่มต้นซ่อนไว้ */
+}
+
+/* ปุ่มภายในเมนู */
+button {
+    display: block;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 14px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%; /* ให้ปุ่มเต็มความกว้างของเมนู */
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+/* กล่องข้อความแสดงระยะทางรวม */
+.info-box-container {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* ทำให้กล่องข้อความอยู่เหนือแผนที่ */
+}
+
+.info-box {
+    font-size: 14px;
+    color: #333;
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.register-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #4cae4c;
+}
+
+#error-message, #success-message {
+    margin-top: 10px;
+    text-align: center;
+}

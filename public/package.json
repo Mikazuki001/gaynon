@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "chart.js": "^4.4.4",
+    "leaflet.heightgraph": "^1.4.0"
+  }
+}
