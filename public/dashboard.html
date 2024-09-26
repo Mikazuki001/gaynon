@@ -38,7 +38,13 @@
             border-top: 1px solid #ddd;
             height: 100%;
         }
-
+/* CSS สำหรับปุ่มกลับไปหน้าแรกและหน้าแผนที่ */
+#back-buttons {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
         .info-box-container {
             grid-row: 2;
             grid-column: 2;
@@ -63,16 +69,26 @@
         <div id="menuItems" class="menu-items">
             <button id="clearBtn">Clear Points</button>
             <button id="undoBtn">Undo Point</button>
-            <button id="showDistanceBtn">Show Total Distance</button>
+            <button id="exportJsonBtn">Export as JSON</button>
+            <button id="exportGpxBtn">Export as GPX</button>
+            <button id="exportShpBtn">Export as Shapefile</button>
         </div>
+        
+<!-- ปุ่มกลับไปหน้าแรกและหน้าแผนที่ -->
+<div id="back-buttons">
+    <a href="home.html" class="btn-back">หน้าหลัก</a>
+    <a href="index.html" class="btn-back">แผนที่</a>
+</div>
+
     </div>
     <div class="info-box-container">
-        <div id="infoBox" class="info-box">My custom distance: 0 km<br>Elevation: 0 m<br>Segment length: 0 km<br>Type:
-            None</div>
+        <div id="infoBox" class="info-box">My custom distance: 0 km<br>Elevation: 0 m<br>Segment length: 0 km<br>Type: None</div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/shp-write"></script>
+
     <script>
         const map = L.map('map').setView([13.736717, 100.523186], 6);
 
@@ -177,13 +193,12 @@
             const altitude = Math.floor(Math.random() * 100); // ใช้ค่าความสูงสุ่มในที่นี้
 
             // เพิ่มจุดใหม่
-points.push({ latlng, alt: altitude });
-const marker = L.marker(latlng, { draggable: true }).addTo(map)
-    .bindPopup(`Altitude: ${altitude} meters`) // ใช้ backtick ` แทนเครื่องหมาย ""
-    .openPopup();
-markers.push(marker);
-latlngs.push(latlng);
-
+            points.push({ latlng, alt: altitude });
+            const marker = L.marker(latlng, { draggable: true }).addTo(map)
+                .bindPopup(`Altitude: ${altitude} meters`) // ใช้ backtick ` แทนเครื่องหมาย ""
+                .openPopup();
+            markers.push(marker);
+            latlngs.push(latlng);
 
             // ฟังก์ชันเมื่อหมุดถูกลาก
             marker.on('dragend', function (e) {
@@ -232,6 +247,56 @@ latlngs.push(latlng);
                 updateGraph();
             }
         }
+
+        // ฟังก์ชันส่งออกเป็น JSON
+        document.getElementById('exportJsonBtn').addEventListener('click', () => {
+            const dataStr = JSON.stringify(points.map(p => ({
+                lat: p.latlng.lat,
+                lng: p.latlng.lng,
+                alt: p.alt
+            })), null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'points.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // ฟังก์ชันส่งออกเป็น GPX
+        document.getElementById('exportGpxBtn').addEventListener('click', () => {
+            let gpxData = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Leaflet">\n';
+            points.forEach(point => {
+                gpxData += `<wpt lat="${point.latlng.lat}" lon="${point.latlng.lng}">\n  <ele>${point.alt}</ele>\n</wpt>\n`;
+            });
+            gpxData += '</gpx>';
+            const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'points.gpx';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // ฟังก์ชันส่งออกเป็น Shapefile
+        document.getElementById('exportShpBtn').addEventListener('click', () => {
+            const geoJsonData = {
+                type: 'FeatureCollection',
+                features: points.map(point => ({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [point.latlng.lng, point.latlng.lat]
+                    },
+                    properties: {
+                        altitude: point.alt
+                    }
+                }))
+            };
+            shpwrite.download(geoJsonData);
+        });
 
         map.on('click', onMapClick);
         document.getElementById('clearBtn').addEventListener('click', clearPoints);
